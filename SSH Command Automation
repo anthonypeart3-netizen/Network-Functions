@@ -1,0 +1,61 @@
+import paramiko
+import time
+
+
+# Define the list of Cisco device IP addresses
+with open("list.txt") as ips:
+   device_ips = ips.read().splitlines()
+
+
+# Credentials
+username = ""
+password = ""
+
+
+
+
+
+
+with open("commands.txt") as cmds:
+   commands = cmds.read().splitlines()
+
+
+# Commands to run on the devices
+
+
+
+
+def ssh_connect(ip, username, password, commands):
+   try:
+       # Create SSH client
+       client = paramiko.SSHClient()
+       client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+
+       # Connect to the device
+       client.connect(ip, username=username, password=password)
+       print(f"Connected to {ip}")
+
+
+       # Open interactive shell for proper command execution
+       shell = client.invoke_shell()
+       time.sleep(2)  # Give time for CLI prompt to stabilize
+
+
+       for command in commands:
+           shell.send(command + "\n")  # Send command and press Enter
+           time.sleep(1)  # Wait briefly to let the command execute
+           output = shell.recv(65535).decode()
+           print(f"Output of '{command}' on {ip}:\n{output}")
+
+
+       # Close the connection
+       client.close()
+   except Exception as e:
+       print(f"Failed to connect to {ip}: {e}")
+
+
+# Connect to each device and execute commands
+for ip in device_ips:
+   ssh_connect(ip, username, password, commands)
+
